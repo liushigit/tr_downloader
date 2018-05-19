@@ -1,0 +1,8 @@
+ENV/
+env/
+.idea/
+.mypy_cache/
+*.txt
+*.pyc
+/dist/
+src/*.egg-info
