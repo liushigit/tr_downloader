@@ -11,39 +11,20 @@
 # https://www.python.org/dev/peps/pep-0525/#asynchronous-generator-object
 # https://stackoverflow.com/questions/12382719/python-way-of-printing-with-format-or-percent-form
 
-import asyncio
 import argparse
-import itertools
-from typing import Generator, Coroutine, Iterator, Awaitable, Any, Iterable
-from types import CoroutineType
-
+import asyncio
 from datetime import date, timedelta, datetime
+from typing import Generator
+
 from aiohttp import ClientSession
 
-from time import sleep
+from .utils import as_completed_limited, download
 
 DATE_FORMAT = '%Y%m%d'
 DATE_FORMAT_URL = '%Y-%m-%d'
 CHUNK_SIZE = 64
 
 SERVER_HOST = 'http://127.0.0.1:3006'
-
-
-# https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
-def print_progress_bar(iteration, total, prefix='', suffix='', width=20, fill='█'):
-    filled_length = int(width * iteration // total)
-
-    filled_length = min(width, filled_length)
-
-    bar = fill * filled_length + '-' * (width - filled_length)
-
-    percent = iteration / float(total) * 100
-    percent = min(percent, 100)
-
-    print(f"\r{prefix} |{bar}| {percent:5.1f}% {suffix}", end='\r')
-    # print("\r{} completed".format(percent), end='\r')
-    if iteration >= total:
-        print()
 
 
 def gen_dates(begin: date, end: date) -> Generator[date, None, None]:
@@ -60,60 +41,6 @@ def date_to_fn(the_date: date) -> str:
 
 def date_to_url(the_date: date, base_url: str) -> str:
     return base_url + the_date.strftime(DATE_FORMAT_URL)
-
-
-# http://aiohttp.readthedocs.io/en/stable/client.html
-async def download(url: str,
-                   file_path: str,
-                   session: ClientSession,
-                   params: dict,
-                   chunk_size: int = 64
-                   ):
-    async with session.get(url, params=params) as resp:
-        if resp.status > 200:
-            # print("{:s} : {:d}".format(url, resp.status))
-            return
-        elif resp.status == 200:
-            # print("{} downloaded".format(file_path))
-            pass
-
-        file_length = int(resp.headers.get('content-length'))
-        # print(file_length)
-
-        with open(file_path, 'wb') as f:
-            read = 0
-            while True:
-                # sleep(0.1)
-                chunk = await resp.content.read(chunk_size)
-                read += chunk_size
-
-                if not chunk:
-                    break
-
-                print_progress_bar(read, file_length)
-
-                f.write(chunk)
-
-
-def as_completed_limited(coros: Iterable[Awaitable[Any]], limit: int):
-    futures = [asyncio.ensure_future(c)
-               for c in itertools.islice(coros, 0, limit)]
-
-    async def go_through():
-        while True:
-            await asyncio.sleep(0)
-            for f in futures:
-                if f.done():
-                    futures.remove(f)
-                    try:
-                        nf = next(coros)
-                        futures.append(asyncio.ensure_future(nf))
-                    except StopIteration as e:
-                        pass
-                    return f.result()
-
-    while futures:
-        yield go_through()
 
 
 async def run(begin: date, end: date, params: dict, limit: int = 4):
