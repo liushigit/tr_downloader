@@ -14,7 +14,7 @@
 import asyncio
 import argparse
 import itertools
-from typing import Generator, Coroutine, Iterator, Awaitable, Any
+from typing import Generator, Coroutine, Iterator, Awaitable, Any, Iterable
 from types import CoroutineType
 
 from datetime import date, timedelta, datetime
@@ -32,9 +32,15 @@ SERVER_HOST = 'http://127.0.0.1:3006'
 # https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 def print_progress_bar(iteration, total, prefix='', suffix='', width=20, fill='█'):
     filled_length = int(width * iteration // total)
+
+    filled_length = min(width, filled_length)
+
     bar = fill * filled_length + '-' * (width - filled_length)
+
     percent = iteration / float(total) * 100
-    print(f"\r{prefix} |{bar}| {percent:.1f}% {suffix}", end='\r')
+    percent = min(percent, 100)
+
+    print(f"\r{prefix} |{bar}| {percent:5.1f}% {suffix}", end='\r')
     # print("\r{} completed".format(percent), end='\r')
     if iteration >= total:
         print()
@@ -61,7 +67,7 @@ async def download(url: str,
                    file_path: str,
                    session: ClientSession,
                    params: dict,
-                   chunk_size: int = 1
+                   chunk_size: int = 64
                    ):
     async with session.get(url, params=params) as resp:
         if resp.status > 200:
@@ -72,22 +78,24 @@ async def download(url: str,
             pass
 
         file_length = int(resp.headers.get('content-length'))
+        # print(file_length)
 
         with open(file_path, 'wb') as f:
             read = 0
             while True:
-                sleep(0.1)
+                # sleep(0.1)
                 chunk = await resp.content.read(chunk_size)
                 read += chunk_size
 
                 if not chunk:
                     break
-                # print(read, file_length)
+
                 print_progress_bar(read, file_length)
+
                 f.write(chunk)
 
 
-def as_completed_limited(coros: Iterator[Awaitable[Any]], limit: int):
+def as_completed_limited(coros: Iterable[Awaitable[Any]], limit: int):
     futures = [asyncio.ensure_future(c)
                for c in itertools.islice(coros, 0, limit)]
 
@@ -110,7 +118,7 @@ def as_completed_limited(coros: Iterator[Awaitable[Any]], limit: int):
 
 async def run(begin: date, end: date, params: dict, limit: int = 4):
     async with ClientSession() as session:
-        coros = (download(date_to_url(d, '/data/test/'),
+        coros = (download(date_to_url(d, SERVER_HOST + '/data/test/'),
                           date_to_fn(d),
                           session,
                           params=params)
