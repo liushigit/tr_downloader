@@ -15,7 +15,7 @@ setup(name='tr_downloader',
       python_requires='~=3.6',
       entry_points={
           'console_scripts': [
-              'tr_downloader=tr_downloader.tr_downloader:main_func'
+              'tr-lists=tr_downloader.tr_download_lists:main_func'
           ]
       },
       install_requires=['aiohttp'],
