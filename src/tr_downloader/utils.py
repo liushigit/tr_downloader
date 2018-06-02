@@ -1,5 +1,6 @@
 import itertools
 import asyncio
+import os
 
 from aiohttp import ClientSession
 from typing import Generator, Coroutine, Iterator, Awaitable, Any, Iterable
@@ -26,10 +27,10 @@ def print_progress_bar(iteration, total, prefix='', suffix='', width=20, fill='â
 async def download(url: str,
                    file_path: str,
                    session: ClientSession,
-                   params: dict,
+                   query_params: dict,
                    chunk_size: int = 64
                    ):
-    async with session.get(url, params=params) as resp:
+    async with session.get(url, params=query_params) as resp:
         if resp.status > 200:
             # print("{:s} : {:d}".format(url, resp.status))
             return
@@ -74,3 +75,16 @@ def as_completed_limited(coros: Iterator[Awaitable[Any]], limit: int):
 
     while futures:
         yield go_through()
+
+
+def ensure_dir(path):
+    p = os.path.expanduser(path)
+
+    if not os.path.isabs(p):
+        p = os.path.abspath(p)
+
+    if os.path.isdir(p):
+        return p
+
+    os.makedirs(p)
+    return p
