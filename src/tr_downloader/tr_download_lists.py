@@ -65,8 +65,8 @@ def main_func():
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-t', '--token', required=True)  # TODO: required
     parser.add_argument('-d', '--dir', default='./data_downloads')
-    parser.add_argument('-b', '--begin')
-    parser.add_argument('-e', '--end')
+    parser.add_argument('-b', '--begin', required=True)
+    parser.add_argument('-e', '--end', required=True)
 
     args = parser.parse_args()
 
