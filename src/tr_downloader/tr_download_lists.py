@@ -13,10 +13,10 @@
 
 import argparse
 import asyncio
-import os
 from datetime import date, timedelta, datetime
 from typing import Generator
 
+import os
 from aiohttp import ClientSession
 
 from .utils import as_completed_limited, download, ensure_dir
@@ -44,17 +44,33 @@ def date_to_url(the_date: date, base_url: str) -> str:
     return base_url + the_date.strftime(DATE_FORMAT_URL)
 
 
+def make_downloader(url_prefix: str, save_path: str, session, query_params):
+    async def f(file_obj):
+        for line in file_obj:
+            await download(url_prefix + '/' + line, os.path.join(save_path, line), session, query_params)
+
+    return f
+
+
 async def run(begin: date,
               end: date,
               save_path: str,
               query_params: dict,
               limit: int = 4):
+    # TODO: add callback to `download`
+
     async with ClientSession() as session:
-        coros = (download(date_to_url(d, SERVER_HOST + '/data/test/'),
-                          os.path.join(save_path, date_to_fn(d)),
+        l = ((date_to_url(d, SERVER_HOST + '/data/test/'),
+              os.path.join(save_path, date_to_fn(d)))
+             for d in gen_dates(begin, end))
+
+        coros = (download(url,
+                          filename,
                           session,
-                          query_params=query_params)
-                 for d in gen_dates(begin, end))
+                          query_params=query_params,
+                          callback=make_downloader(url, '', session, query_params)
+                          )
+                 for url, filename in l)
 
         for i in as_completed_limited(coros, limit):
             await i

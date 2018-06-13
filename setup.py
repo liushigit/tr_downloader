@@ -1,7 +1,6 @@
-# https://packaging.python.org/tutorials/distributing-packages/#scripts
-
-
 from setuptools import setup
+
+# https://packaging.python.org/tutorials/distributing-packages/#scripts
 
 setup(name='tr_downloader',
       version='0.1',

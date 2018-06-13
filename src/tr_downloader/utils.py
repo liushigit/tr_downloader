@@ -1,9 +1,12 @@
-import itertools
-import asyncio
-import os
+#
+# https://docs.python.org/3/library/typing.html
 
+
+import asyncio
+import itertools
+import os
 from aiohttp import ClientSession
-from typing import Generator, Coroutine, Iterator, Awaitable, Any, Iterable
+from typing import (Iterator, Awaitable, Any, Callable, Union)
 
 
 # https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
@@ -28,8 +31,8 @@ async def download(url: str,
                    file_path: str,
                    session: ClientSession,
                    query_params: dict,
-                   chunk_size: int = 64
-                   ):
+                   chunk_size: int = 64,
+                   callback: Union[Callable, None] = None) -> None:
     try:
         async with session.get(url, params=query_params) as resp:
             if resp.status > 200:
@@ -55,6 +58,11 @@ async def download(url: str,
                     print_progress_bar(read, file_length)
 
                     f.write(chunk)
+
+            if callback:
+                with open(file_path, 'r') as f:
+                    await callback(f)
+
     except Exception as e:
         print(e)
 
