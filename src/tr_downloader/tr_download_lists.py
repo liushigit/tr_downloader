@@ -100,6 +100,7 @@ def main_func():
     parameters = {'t': args.token}
 
     loop = asyncio.get_event_loop()
+    # https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.AbstractEventLoop.run_until_complete
     loop.run_until_complete(run(d1, d2, save_path, query_params=parameters))
     loop.close()
 

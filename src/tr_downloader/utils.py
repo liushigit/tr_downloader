@@ -68,6 +68,7 @@ async def download(url: str,
 
 
 def as_completed_limited(coros: Iterator[Awaitable[Any]], limit: int):
+    # https://docs.python.org/3/library/asyncio-task.html#asyncio.ensure_future
     futures = [asyncio.ensure_future(c)
                for c in itertools.islice(coros, 0, limit)]
 
