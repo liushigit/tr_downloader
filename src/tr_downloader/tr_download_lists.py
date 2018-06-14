@@ -13,11 +13,10 @@
 
 import argparse
 import asyncio
-from datetime import date, timedelta, datetime
-from typing import Generator
-
 import os
 from aiohttp import ClientSession
+from datetime import date, timedelta, datetime
+from typing import Generator
 
 from .utils import as_completed_limited, download, ensure_dir
 
@@ -37,7 +36,7 @@ def gen_dates(begin: date, end: date) -> Generator[date, None, None]:
 
 
 def date_to_fn(the_date: date) -> str:
-    return the_date.strftime(DATE_FORMAT) + '.txt'
+    return the_date.strftime(DATE_FORMAT)
 
 
 def date_to_url(the_date: date, base_url: str) -> str:
@@ -46,8 +45,14 @@ def date_to_url(the_date: date, base_url: str) -> str:
 
 def make_downloader(url_prefix: str, save_path: str, session, query_params):
     async def f(file_obj):
+        ensure_dir(save_path)
+        print(save_path)
         for line in file_obj:
-            await download(url_prefix + '/' + line.strip(), os.path.join(save_path, line), session, query_params)
+            filename = line.strip()
+            await download(url_prefix + '/' + filename,
+                           os.path.join(save_path, filename),
+                           session,
+                           query_params)
 
     return f
 
@@ -65,12 +70,12 @@ async def run(begin: date,
              for d in gen_dates(begin, end))
 
         coros = (download(url,
-                          filename,
+                          date_path + '.txt',
                           session,
                           query_params=query_params,
-                          callback=make_downloader(url, '', session, query_params)
+                          callback=make_downloader(url, date_path, session, query_params)
                           )
-                 for url, filename in l)
+                 for url, date_path in l)
 
         for i in as_completed_limited(coros, limit):
             await i

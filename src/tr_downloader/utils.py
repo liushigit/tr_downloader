@@ -55,7 +55,7 @@ async def download(url: str,
                     if not chunk:
                         break
 
-                    print_progress_bar(read, file_length)
+                    # print_progress_bar(read, file_length)
 
                     f.write(chunk)
 
