@@ -47,7 +47,7 @@ def date_to_url(the_date: date, base_url: str) -> str:
 def make_downloader(url_prefix: str, save_path: str, session, query_params):
     async def f(file_obj):
         for line in file_obj:
-            await download(url_prefix + '/' + line, os.path.join(save_path, line), session, query_params)
+            await download(url_prefix + '/' + line.strip(), os.path.join(save_path, line), session, query_params)
 
     return f
 
