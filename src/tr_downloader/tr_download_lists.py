@@ -63,8 +63,6 @@ async def run(begin: Optional[date],
               save_path: str,
               query_params: dict,
               limit: int = 4):
-    # TODO: add callback to `download`
-
     async with ClientSession() as session:
         token = query_params['t']
 
@@ -104,7 +102,7 @@ async def run(begin: Optional[date],
 def main_func():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-t', '--token', required=True)  # TODO: required
+    parser.add_argument('-t', '--token', required=True)
     parser.add_argument('-d', '--dir', default='./data_downloads')
     parser.add_argument('-b', '--begin')
     parser.add_argument('-e', '--end')
