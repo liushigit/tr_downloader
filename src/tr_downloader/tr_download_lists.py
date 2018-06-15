@@ -71,17 +71,8 @@ async def run(begin: Optional[date],
         async with session.get('http://127.0.0.1:3006/requests/1effae5cc10f4aeda5383cddda17d219') as resp:
             info = await resp.json()
 
-        d1 = None
-        d2 = None
-
-        if info:
-            d1 = datetime.strptime(info['time_start'][:10], DATE_FORMAT_URL).date()
-            d2 = datetime.strptime(info['time_end'][:10], DATE_FORMAT_URL).date()
-
-        if begin:
-            d1 = begin
-        if end:
-            d2 = end
+        d1 = datetime.strptime(info['time_start'][:10], DATE_FORMAT_URL).date() if begin is None else begin
+        d2 = datetime.strptime(info['time_end'][:10], DATE_FORMAT_URL).date() if end is None else end
 
         urls_and_paths = ((date_to_url(d, SERVER_HOST + '/data/test/'),
                            os.path.join(save_path, date_to_fn(d)))
@@ -109,12 +100,8 @@ def main_func():
 
     args = parser.parse_args()
 
-    d1 = None
-    d2 = None
-    if args.begin:
-        d1 = datetime.strptime(args.begin, DATE_FORMAT_URL).date()
-    if args.end:
-        d2 = datetime.strptime(args.end, DATE_FORMAT_URL).date()
+    d1 = None if args.begin is None else datetime.strptime(args.begin, DATE_FORMAT_URL).date()
+    d2 = None if args.end is None else datetime.strptime(args.end, DATE_FORMAT_URL).date()
 
     save_path = args.dir
     ensure_dir(save_path)
